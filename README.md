@@ -8,23 +8,28 @@ Contextualized representations from transformer models have significantly improv
 
 ## Background
 * ColBERT uses a BERT encoder to encode each query and each document into their token-level contextualized representations which are then used to predict the relevance score using all-to-all soft semantic matching between the query and document token vectors. All token representations need to be indexed which imposes a large storage footprint.
+
 ![ColBERT architecture](./images/colbert.png)
 
 * ColBERTv2 proposes a residual vector compression mechanism to reduce the index size of ColBERT by using k-means clustering along with residual vector quantization.
-  1. Use k-means to identify topic clusters in the semantic space produced by ColBERT (all the token contextualized representations for a collection)
-  2. Given the original token contextualized vector produced by ColBERT, find the closest cluster centroid
-  3. Compute the residual vector between the original ColBERT token vector and the closest centroid vector and quantize it
+  1. Use k-means to identify topic clusters in the semantic space produced by ColBERT (all the token contextualized representations for a collection);
+  2. Given the original token contextualized vector produced by ColBERT, find the closest cluster centroid;
+  3. Compute the residual vector between the original ColBERT token vector and the closest centroid vector and quantize it.
+  
   ![ColBERTv2 residual compression](./images/colbertv2.png)
  
 ## Framework 
 Try to approximate the contextualized representations produced by ColBERT's encoder (the Oracle model) with a more principled approach based on term-topic embeddings learned in and end-to-end way using the Term Topic Module along with minor refinements using local contextualization in the Local Context Module. 
+
 ![](./images/modules.png)
 
 ### Term Topic Module (TTM)
-1. Automatically leran a finite small set of static sub-embeddings which decompose the semantic space of a token into its **contextual senses** or **topics**
+1. Automatically leran a finite small set of static sub-embeddings which decompose the semantic space of a token into its **contextual senses** or **topics**.
+
   ![Identify a finite set of static sub-embeddings to summarize the semantic space of a token](./images/sub_embeddings.png)
 
 2. Combine a token's sub-embeddings with different weights to produce occurrence-specific representations which approximate the original ColBRET contextualized representation (distillation method).
+
   ![Combine a token's sub-embeddings with different weights to produce occurrence-specific representations which approximate the original ColBRET contextualized representation](./images/sub_embeddings_agg.png)
   
 ### Local Context Module (LCM)
