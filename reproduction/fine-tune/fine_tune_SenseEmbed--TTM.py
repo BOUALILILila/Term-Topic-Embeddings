@@ -13,12 +13,12 @@ from transformers import (
     set_seed,
 )
 
-from arguments import TripletsDataArguments as DataArguments, TrainingArguments
-from models import SenseEmbed as TTM
-from losses import MarginMSELoss as Loss
-from trainers import Trainer
-from trainer_utils import HTensorBoardCallback, LossPrinterCallback
-from data import (
+from src.arguments import TripletsDataArguments as DataArguments, TrainingArguments
+from src.models import SenseEmbed as TTM
+from src.losses import MarginMSELoss as Loss
+from src.trainers import Trainer
+from src.trainer_utils import HTensorBoardCallback, LossPrinterCallback
+from src.data import (
     CollectionReader,
     HardNegativesReader,
     QueriesReader,

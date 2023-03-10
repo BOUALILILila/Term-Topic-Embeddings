@@ -1,5 +1,4 @@
 # coding=utf-8
-import os
 from dataclasses import dataclass, field
 from typing import Optional
 from transformers import TrainingArguments as BaseTrainingArgs

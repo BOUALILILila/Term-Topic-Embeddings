@@ -11,12 +11,12 @@ from transformers import (
     set_seed,
 )
 
-from arguments import PosModelArguments as ModelArguments, DataArguments, TrainingArguments
-from models import SenseEmbedwithAttnSGUFromTransformer as TTM_LCM
-from losses import EmbLossTransformerEmb as Loss
-from trainers import Trainer
-from trainer_utils import HTensorBoardCallback, LossPrinterCallback
-from data import (
+from src.arguments import PosModelArguments as ModelArguments, DataArguments, TrainingArguments
+from src.models import SenseEmbedwithAttnSGUFromTransformer as TTM_LCM
+from src.losses import EmbLossTransformerEmb as Loss
+from src.trainers import Trainer
+from src.trainer_utils import HTensorBoardCallback, LossPrinterCallback
+from src.data import (
     MsMarcoIterator, 
     RandomTokenCollator, 
     get_data_sampler,

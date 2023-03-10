@@ -1,21 +1,18 @@
 # coding=utf-8
 import os
-from typing import Callable, Optional, Union
+from typing import Callable, Optional
 from dataclasses import dataclass
 import copy
 
-import numpy as np
 import torch
-from torch import nn, einsum
-import torch.nn.functional as F
-from einops import rearrange, repeat
+from torch import nn
 
 from transformers import (
     AutoModel,
     AutoConfig,
     WEIGHTS_NAME,
 )
-from transformers.activations import gelu
+
 from transformers.utils import logging
 
 

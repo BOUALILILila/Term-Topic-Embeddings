@@ -1,5 +1,5 @@
 # Term-Topic-Embeddings
-This repository contains the code for pre-training and fine-tuning the analysis framework of ColBERT's contextualized representations through term-topic embeddings and local contextualization approximations proposed in:
+This repository contains the code for pre-training and fine-tuning the analysis framework of ColBERT's contextualized representations through term-topic embeddings and local contextualization approximations presented at ECIR'23:
 
 [A Study of Term-Topic Embeddings for Ranking]()
 
@@ -45,17 +45,18 @@ einops==0.3
 ```
 ## Resources
 [![huggingface](https://img.shields.io/badge/huggingface-Oracle-green)](https://huggingface.co/)
-[![huggingface](https://img.shields.io/badge/huggingface-TTM-red)](https://huggingface.co/)
-[![huggingface](https://img.shields.io/badge/huggingface-TTM--LCM-blue)](https://huggingface.co/)
+<!-- [![huggingface](https://img.shields.io/badge/huggingface-TTM-red)](https://huggingface.co/)
+[![huggingface](https://img.shields.io/badge/huggingface-TTM--LCM-blue)](https://huggingface.co/) -->
 
 * __Oracle:__ We use the distilbert encoder from a fine-tuned [ColBERT](https://huggingface.co/sebastian-hofstaetter/colbert-distilbert-margin_mse-T2-msmarco) model for ranking on Ms Marco. 
+<!-- * __Checkpoints:__ The TTM and TTM-LCM checkpoints correspond to the fine-tuned models we use in the experiments reported in the ECIR'23 paper. (pre-train + fine-tune) -->
 * __CAR passages:__ We extract passages from the TREC CAR collection using a sliding window of 128 with a stride of 96
 
-## Minimal usage example
-Colab notebook [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](notebook.ipynb)
+<!-- ## Minimal usage example
+Colab notebook [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](notebook.ipynb) -->
 
 ## Reproduction scripts
-We provide .ssh scripts to train our modules from scratch under the train folder with the same hyper-parameters used in the ECIR'23 paper.
+We provide bash scripts to train our modules from scratch under the reproduction folder with the same hyper-parameters used in the ECIR'23 paper.
 
 ## Citation
 If you find our work helpful, please cite it as:

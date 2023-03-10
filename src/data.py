@@ -1,14 +1,11 @@
 # coding=utf-8
 from arguments import DataArguments
-import os, sys
+import os
 from typing import (
-  Iterator, 
-  Tuple, 
   Optional, 
   Dict, 
   List, 
   Union,
-  Callable,
 )
 from collections import defaultdict
 from dataclasses import dataclass
@@ -249,6 +246,157 @@ class RandomTokensTrainSampler(BaseTrainSamplesGenerator, ShuffleTrainSampler, t
 
   def valid(self, elements: dict):
     return (len(elements['token_ind'])>0)
+
+
+class FrqSubSamplingVocab:
+  def __init__(
+    self, corpus_iter: BaseDatasetIterator, 
+    tokenizer: AutoTokenizer,
+    max_seq_len: int,
+    min_count:int,
+    sample:float,
+    trim_rule:Optional[callable],
+    train_path:str,
+    ) -> None:
+      VOCAB_KEYS = ['max_seq_len', 'min_count', 'sample']
+      assert max_seq_len > 0 , "Max_seq_len must be greater than 0"
+      params = locals()
+      args_str = f'_{tokenizer.name_or_path.replace("/","-")}-' + '-'.join([f'{k}{params[k]}' for k in VOCAB_KEYS])
+      self.vocab_path = os.path.splitext(train_path)[0] + args_str + '.pickle'
+      self.load_vocab()
+      if self.vocab is None:
+        logger.info("Building vocabulary from tainining files ...")
+        self.build_vocab(corpus_iter, tokenizer, max_seq_len, min_count, sample, trim_rule)
+      self.save_vocab()
+
+  def get_vocab(self):
+    return self.vocab
+  
+  def get_corpus_count(self):
+    return self.corpus_count
+
+  def save_vocab(self):
+    if self.vocab is not None and not os.path.exists(self.vocab_path):
+      to_save = {'vocab': self.vocab, 'corpus_count': self.corpus_count}
+      with open(self.vocab_path, 'wb') as fp:
+        pickle.dump(to_save, fp, protocol=pickle.HIGHEST_PROTOCOL)
+  
+  def load_vocab(self):
+    self.vocab = None
+    self.corpus_count = 0
+    if os.path.exists(self.vocab_path):
+      logger.info(f"Loading vocabulary from saved file {self.vocab_path}")
+      with open(self.vocab_path, 'rb') as fp:
+        data = pickle.load(fp)
+      self.vocab = data['vocab']
+      self.corpus_count = data['corpus_count']
+
+  def build_vocab(
+    self, 
+    corpus_iter: BaseDatasetIterator,
+    tokenizer: AutoTokenizer,
+    max_seq_len: int,
+    min_count: int,
+    sample: float,
+    trim_rule: Optional[Callable],
+    ):
+    raw_vocab, self.corpus_count = self._build_vocab(corpus_iter, tokenizer, max_seq_len)
+    self.vocab = self._prep_vocab(raw_vocab, min_count, trim_rule, sample)
+    self.vocab_size = len(self.vocab)
+
+    # self.stats['raw_vocab_size'] = len(raw_vocab)
+    # self.stats['vocab_size'] = self.vocab_size
+    
+  def _build_vocab(
+    self, 
+    corpus_iter: BaseDatasetIterator,
+    tokenizer: AutoTokenizer, 
+    max_seq_len: int,
+    progress_per :str = 1000
+    ) -> Tuple[int, int]:
+    """Creates the vocab with their counts"""
+
+    total_tokens = 0
+    vocab = defaultdict(int)
+
+    for i, passage in enumerate(corpus_iter):
+      passage_ids = tokenizer.encode(
+        passage,
+        max_length = max_seq_len-2, # consider only seq_len or all passage tokens
+        truncation = True,
+        add_special_tokens=False,
+      )
+      if i % progress_per == 0:
+        logger.info(
+          f"PROGRESS: at passage #{i}, processed {total_tokens} tokens, {len(vocab)} unique tokens"
+        )
+      
+      for token_id in passage_ids:
+        vocab[token_id] += 1
+      total_tokens += len(passage_ids)
+
+    corpus_count = i + 1
+    return vocab, corpus_count
+
+  def _prep_vocab(
+    self, 
+    raw_vocab: Dict[str,int],
+    min_count: int,
+    trim_rule: Optional[Callable], 
+    sample: float,
+    ) -> Dict[str, Tuple[int,float]]:
+
+    drop_total = drop_unique = 0
+    retain_total, retain_tokens = 0, []
+
+    # discard tokens with unsufficient count (or doesn't correspond to tirm_rule)
+    for token, count in raw_vocab.items():
+      if keep_vocab_item(token, count, min_count, trim_rule=trim_rule):
+        retain_tokens.append(token)
+        retain_total += count  
+      else:          
+        drop_unique += 1
+        drop_total += count
+    
+    original_unique_total = len(retain_tokens) + drop_unique
+    retain_unique_pct = len(retain_tokens) * 100 / max(original_unique_total, 1)
+    logger.info(
+      f"min_count={min_count} retains {len(retain_tokens)} unique "
+      f"words ({retain_unique_pct}%% of original {original_unique_total}, drops {drop_unique})"
+    )
+
+    original_total = retain_total + drop_total
+    retain_pct = retain_total * 100 / max(original_total, 1)
+    logger.info(
+      f"min_count={min_count} leaves {retain_total} token corpus "
+      f"({retain_pct}%% of original {original_total}, drops {drop_total})"
+    )
+
+    # Precalculate each vocabulary item's threshold for sampling
+    if sample <= 1.0:
+      # traditional meaning: set parameter as proportion of total
+      threshold_count = sample * retain_total
+    # else:
+    #   # new shorthand: sample >= 1 means downsample all words with higher count than sample
+    #   threshold_count = int(sample * (3 + np.sqrt(5)) / 2)
+
+    downsample_total, downsample_unique = 0, 0
+    filtered_vocab = defaultdict()
+    for w in retain_tokens:
+      count = raw_vocab[w]
+      token_probability = (np.sqrt(count / threshold_count) + 1) * (threshold_count / count)
+      filtered_vocab[w] = (count, token_probability)
+      if token_probability < 1.0:
+        downsample_unique += 1
+        downsample_total += token_probability * count
+      else:
+        token_probability = 1.0
+        downsample_total += count
+
+    logger.info(f"sample={sample} downsamples {downsample_unique} most-common tokens")
+
+    return filtered_vocab
+
 
 class FrqRandomTokensTrainSampler(RandomTokensTrainSampler):
   def __init__(
