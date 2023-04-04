@@ -1,12 +1,12 @@
 # Term-Topic-Embeddings
 This repository contains the code for pre-training and fine-tuning the analysis framework of ColBERT's contextualized representations through term-topic embeddings and local contextualization approximations presented at ECIR'23:
 
-[A Study of Term-Topic Embeddings for Ranking]()
+[A Study of Term-Topic Embeddings for Ranking](https://link.springer.com/chapter/10.1007/978-3-031-28238-6_25)
 
 ## Summary
 Contextualized representations from transformer models have significantly improved the performance of neural ranking models. Late interactions introduced in [ColBERT](https://dl.acm.org/doi/10.1145/3397271.3401075) and recently compressed with clustering in [ColBERTv2](https://arxiv.org/abs/2112.01488) deliver state-of-the-art quality on many benchmarks. ColBERTv2 uses centroids along with occurrence-specific delta vectors to approximate the contextualized embeddings without reducing ranking effectiveness. Analysis of this work suggests that these centroids are ``term-topic embeddings''. We examine whether term-topic embeddings can be created in a differentiable end-to-end way, finding that this is a viable strategy for removing the separate clustering step. We investigate the importance of local context for contextualizing these term-topic embeddings, analogous to refining centroids with delta vectors. We find this end-to-end approach is sufficient for matching the effectiveness of the original contextualized embeddings.
 
-## Background
+<!-- ## Background
 * ColBERT uses a BERT encoder to encode each query and each document into their token-level contextualized representations which are then used to predict the relevance score using all-to-all soft semantic matching between the query and document token vectors. All token representations need to be indexed which imposes a large storage footprint.
 
 ![ColBERT architecture](./images/colbert.png)
@@ -33,7 +33,7 @@ Try to approximate the contextualized representations produced by ColBERT's enco
   ![Combine a token's sub-embeddings with different weights to produce occurrence-specific representations which approximate the original ColBRET contextualized representation](./images/sub_embeddings_agg.png)
   
 ### Local Context Module (LCM)
-Refine the term-topic embeddings using a local window attention mechanism to incorporate fine-grained information from the imediate context.
+Refine the term-topic embeddings using a local window attention mechanism to incorporate fine-grained information from the imediate context. -->
 
 # Code
 ## Dependencies
@@ -44,7 +44,7 @@ transformers>=4.9.1, <=4.9.2
 einops==0.3
 ```
 ## Resources
-[![huggingface](https://img.shields.io/badge/huggingface-Oracle-green)](https://huggingface.co/)
+[![huggingface](https://img.shields.io/badge/huggingface-Oracle-green)](LilaBoualili/colbert-distilbert-margin_mse-T2-msmarco-encoder-only)
 <!-- [![huggingface](https://img.shields.io/badge/huggingface-TTM-red)](https://huggingface.co/)
 [![huggingface](https://img.shields.io/badge/huggingface-TTM--LCM-blue)](https://huggingface.co/) -->
 
@@ -61,4 +61,12 @@ We provide bash scripts to train our modules from scratch under the reproduction
 ## Citation
 If you find our work helpful, please cite it as:
 ```
+@inproceedings{boualili2023study,
+  title={A Study of Term-Topic Embeddings for Ranking},
+  author={Boualili, Lila and Yates, Andrew},
+  booktitle={Advances in Information Retrieval: 45th European Conference on Information Retrieval, ECIR 2023, Dublin, Ireland, April 2--6, 2023, Proceedings, Part II},
+  pages={359--366},
+  year={2023},
+  organization={Springer}
+}
 ```
